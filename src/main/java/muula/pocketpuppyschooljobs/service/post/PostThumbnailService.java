@@ -36,7 +36,7 @@ public class PostThumbnailService {
         try {
             process(postToUpdate);
             updatePointer(postToUpdateList);
-            log.info("Update post: {}", postToUpdate.getId());
+            log.info("Updated post: {}", postToUpdate.getId());
         } catch (IOException e) {
             log.info("Failed to check post, id: {}", postToUpdate.getId(), e);
         }

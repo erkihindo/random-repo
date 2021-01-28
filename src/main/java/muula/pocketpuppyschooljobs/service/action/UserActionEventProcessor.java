@@ -141,6 +141,7 @@ public class UserActionEventProcessor {
             .map(UserAction::getId)
             .max(Long::compare)
             .get();
+        log.info("Updated actions until: {}", maxId);
 
         systemPropertyRepository.setValueByKey(USER_ACTION_MAX_ID.name(), maxId.toString());
     }
