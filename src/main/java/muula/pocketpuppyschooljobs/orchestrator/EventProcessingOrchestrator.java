@@ -15,7 +15,7 @@ public class EventProcessingOrchestrator {
 
     private final UserActionEventProcessor userActionEventProcessor;
 
-    @Scheduled(initialDelay = 30000, fixedDelay = 30000)
+    @Scheduled(initialDelay = 30000, fixedDelay = 3000)
     public void run() {
         log.info("Running event processing");
         userActionEventProcessor.processNextEvent();
