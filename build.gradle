@@ -1,0 +1,40 @@
+plugins {
+	id 'org.springframework.boot' version '2.4.2'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+}
+
+group = 'muula'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// db
+//	compile('org.flywaydb:flyway-core')
+	compile('org.springframework.boot:spring-boot-starter-jdbc')
+	compile('mysql:mysql-connector-java')
+	compile('org.springframework.boot:spring-boot-starter-data-jpa')
+	testImplementation("org.testcontainers:testcontainers:1.15.0")
+
+	//endpoint security
+	compile("org.springframework.boot:spring-boot-starter-security:1.4.1.RELEASE")
+
+	// tomcat
+	compile('org.springframework.boot:spring-boot-starter-web')
+	compile("org.springframework.boot:spring-boot-starter-security:1.4.1.RELEASE")
+
+	// TODO rollbar
+}
+
+test {
+	useJUnitPlatform()
+}
