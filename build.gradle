@@ -32,8 +32,8 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter-web')
 	compile("org.springframework.boot:spring-boot-starter-security:1.4.1.RELEASE")
 
-	// TODO rollbar
-}
+	//rollbar
+	compile('com.rollbar:rollbar-logback:1.+')}
 
 test {
 	useJUnitPlatform()

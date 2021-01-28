@@ -1,0 +1,27 @@
+<configuration>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+    <springProfile name="default">
+    <springProperty name="rollbarApiKey" source="rollbar.accessToken"/>
+        <appender name="ROLLBAR" class="com.rollbar.logback.RollbarAppender">
+            <accessToken>${rollbarApiKey}</accessToken>
+
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>ERROR</level>
+            </filter>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="ROLLBAR"/>
+        </root>
+    </springProfile>
+
+    <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
+</configuration>
