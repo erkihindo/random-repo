@@ -70,7 +70,7 @@ public class UserActionEventProcessor {
                 updateSourceAggregations(a, POST_COUNT_V1, -1);
                 break;
             case COMMENT_DELETE:
-                updateTargetAggregations(a, POST_COUNT_V1, -1);
+                updateTargetAggregations(a, COMMENT_COUNT_V1, -1);
                 break;
             case REPORT:
                 updateTargetAggregations(a, REPORT_COUNT_V1, 1);
