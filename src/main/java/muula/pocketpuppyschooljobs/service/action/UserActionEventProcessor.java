@@ -74,6 +74,7 @@ public class UserActionEventProcessor {
                 break;
             case REPORT:
                 updateTargetAggregations(a, REPORT_COUNT_V1, 1);
+                checkIfTargetNeedsToBeDeleted(a);
                 break;
             default:
                 throw new RuntimeException("Unknown action was done!!!!");
@@ -108,7 +109,34 @@ public class UserActionEventProcessor {
             default:
                 throw new RuntimeException("Unknown entity type");
         }
+    }
 
+    private void checkIfTargetNeedsToBeDeleted(UserAction userAction) {
+        switch (userAction.getTargetType()) {
+            case POST:
+                if (areThereMoreReportsThanLikes(userAction.getTargetId(), userAction.getTargetType())) {
+                    Post post = postRepository.findById(Long.valueOf(userAction.getTargetId())).orElseThrow(() -> new RuntimeException("Action was present but entry is missing in db: " + userAction.getId()));
+                    log.info("Hiding post because of reports, id: {}", post.getId());
+                    post.setIsHidden(Boolean.TRUE);
+                    postRepository.save(post);
+                }
+                break;
+            default:
+                throw new RuntimeException("Unmapped entity type for checking deletion: " + userAction.getTargetType());
+        }
+    }
+
+    private boolean areThereMoreReportsThanLikes(String id, EntityType entityType) {
+        Aggregation aggregation = aggregationRepository.findByTargetIdAndTargetType(id, entityType).orElseThrow(() -> new RuntimeException("Entity was reported but no aggregation row exists: " + id + "; " + entityType));
+
+        AggregationBodyDto bodyDto = aggregation.convertBodyToDto();
+        if (bodyDto.getAggregations().getOrDefault(REPORT_COUNT_V1, 0L) > 10) {
+            if (bodyDto.getAggregations().getOrDefault(REPORT_COUNT_V1, 0L) > bodyDto.getAggregations().getOrDefault(LIKE_COUNT_V1, 0L)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void updateAggregation(String id, EntityType entityType, AggregationType aggregationType, int moreOrLess) {
