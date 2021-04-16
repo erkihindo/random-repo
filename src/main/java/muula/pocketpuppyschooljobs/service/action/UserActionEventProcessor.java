@@ -130,7 +130,7 @@ public class UserActionEventProcessor {
         Aggregation aggregation = aggregationRepository.findByTargetIdAndTargetType(id, entityType).orElseThrow(() -> new RuntimeException("Entity was reported but no aggregation row exists: " + id + "; " + entityType));
 
         AggregationBodyDto bodyDto = aggregation.convertBodyToDto();
-        if (bodyDto.getAggregations().getOrDefault(REPORT_COUNT_V1, 0L) > 10) {
+        if (bodyDto.getAggregations().getOrDefault(REPORT_COUNT_V1, 0L) > 5) { // TODO make this into 10
             if (bodyDto.getAggregations().getOrDefault(REPORT_COUNT_V1, 0L) > bodyDto.getAggregations().getOrDefault(LIKE_COUNT_V1, 0L)) {
                 return true;
             }
