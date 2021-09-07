@@ -13,6 +13,7 @@ public enum UserActionType {
     POST_EDIT,
     COMMENT_DELETE,
     COMMENT_EDIT,
-    REPORT
+    REPORT,
+    USER_PICTURE_EDIT
 
 }

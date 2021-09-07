@@ -54,6 +54,7 @@ public class UserActionEventProcessor {
     private void process(UserAction a) {
         switch (a.getType()) {
             case SIGN_UP:
+            case USER_PICTURE_EDIT:
             case POST_EDIT:
             case COMMENT_EDIT:
                 break; // Useless events
