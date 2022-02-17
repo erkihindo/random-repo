@@ -5,6 +5,7 @@ import static muula.pocketpuppyschooljobs.database.entity.enumerated.SystemPrope
 import static muula.pocketpuppyschooljobs.database.model.AggregationType.*;
 import static muula.pocketpuppyschooljobs.utils.JsonSerializer.JSON_SERIALIZER;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,7 @@ import muula.pocketpuppyschooljobs.database.repository.AggregationRepository;
 import muula.pocketpuppyschooljobs.database.repository.PostRepository;
 import muula.pocketpuppyschooljobs.database.repository.SystemPropertyRepository;
 import muula.pocketpuppyschooljobs.database.repository.UserActionRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -32,6 +34,9 @@ public class UserActionEventProcessor {
     private final UserActionRepository userActionRepository;
     private final PostRepository postRepository;
     private final AggregationRepository aggregationRepository;
+
+    @Value("${service.reportThreshold}")
+    private Long REPORT_THRESHOLD;
 
     public void processNextEvent() {
         Long maxProcessedId = getMaxId();
@@ -59,22 +64,24 @@ public class UserActionEventProcessor {
             case COMMENT_EDIT:
                 break; // Useless events
             case LIKE:
-                updateTargetAggregations(a, LIKE_COUNT_V1, 1);
+                updateNumberAggregations(a.getTargetType(), a.getTargetId(), LIKE_COUNT_V1, 1);
+                updateAggregation(a.getTargetId(), EntityType.POST, LATEST_LIKE_DATETIME, ZonedDateTime.now().toString());
                 break;
             case COMMENT:
-                updateTargetAggregations(a, COMMENT_COUNT_V1, 1);
-                break;
-            case POST:
-                updateSourceAggregations(a, POST_COUNT_V1, 1);
-                break;
-            case POST_DELETE:
-                updateSourceAggregations(a, POST_COUNT_V1, -1);
+                updateNumberAggregations(a.getTargetType(), a.getTargetId(), COMMENT_COUNT_V1, 1);
+                updateAggregation(a.getTargetId(), EntityType.POST, LATEST_COMMENT_DATETIME, ZonedDateTime.now().toString());
                 break;
             case COMMENT_DELETE:
-                updateTargetAggregations(a, COMMENT_COUNT_V1, -1);
+                updateNumberAggregations(a.getTargetType(), a.getTargetId(), COMMENT_COUNT_V1, -1);
+                break;
+            case POST:
+                updateNumberAggregations(a.getSourceType(), a.getSourceId(), POST_COUNT_V1, 1);
+                break;
+            case POST_DELETE:
+                updateNumberAggregations(a.getSourceType(), a.getSourceId(), POST_COUNT_V1, -1);
                 break;
             case REPORT:
-                updateTargetAggregations(a, REPORT_COUNT_V1, 1);
+                updateNumberAggregations(a.getTargetType(), a.getTargetId(), REPORT_COUNT_V1, 1);
                 checkIfTargetNeedsToBeDeleted(a);
                 break;
             default:
@@ -82,30 +89,15 @@ public class UserActionEventProcessor {
         }
     }
 
-    private void updateSourceAggregations(UserAction userAction, AggregationType type, int moreOrLess) {
-        switch (userAction.getSourceType()) {
+    private void updateNumberAggregations(EntityType entityType, String entityId, AggregationType type, int change) {
+        switch (entityType) {
             case USER:
-                updateAggregation(userAction.getSourceId(), EntityType.USER, type, moreOrLess);
+                updateAggregation(entityId, EntityType.USER, type, change);
                 break;
             case POST:
-                updateAggregation(userAction.getSourceId(), EntityType.POST, type, moreOrLess);
-                Post post = postRepository.findById(Long.valueOf(userAction.getSourceId())).orElseThrow(() -> new RuntimeException("Action was present but entry is missing in db: " + userAction.getId()));
-                updateAggregation(String.valueOf(post.getUserId()), EntityType.USER, type, moreOrLess);
-                break;
-            default:
-                throw new RuntimeException("Unknown entity type");
-        }
-    }
-
-    private void updateTargetAggregations(UserAction userAction, AggregationType type, int moreOrLess) {
-        switch (userAction.getTargetType()) {
-            case USER:
-                updateAggregation(userAction.getTargetId(), EntityType.USER, type, moreOrLess);
-                break;
-            case POST:
-                updateAggregation(userAction.getTargetId(), EntityType.POST, type, moreOrLess);
-                Post post = postRepository.findById(Long.valueOf(userAction.getTargetId())).orElseThrow(() -> new RuntimeException("Action was present but entry is missing in db: " + userAction.getId()));
-                updateAggregation(String.valueOf(post.getUserId()), EntityType.USER, type, moreOrLess);
+                updateAggregation(entityId, EntityType.POST, type, change);
+                Post post = postRepository.findById(Long.valueOf(entityId)).orElseThrow(() -> new RuntimeException("Action was present but entry is missing in db: " + entityId));
+                updateAggregation(String.valueOf(post.getUserId()), EntityType.USER, type, change);
                 break;
             default:
                 throw new RuntimeException("Unknown entity type");
@@ -131,8 +123,8 @@ public class UserActionEventProcessor {
         Aggregation aggregation = aggregationRepository.findByTargetIdAndTargetType(id, entityType).orElseThrow(() -> new RuntimeException("Entity was reported but no aggregation row exists: " + id + "; " + entityType));
 
         AggregationBodyDto bodyDto = aggregation.convertBodyToDto();
-        if (bodyDto.getAggregations().getOrDefault(REPORT_COUNT_V1, 0L) > 5) { // TODO make this into 10
-            if (bodyDto.getAggregations().getOrDefault(REPORT_COUNT_V1, 0L) > bodyDto.getAggregations().getOrDefault(LIKE_COUNT_V1, 0L)) {
+        if (bodyDto.fetchNumberAggregation(REPORT_COUNT_V1).longValue() > REPORT_THRESHOLD) {
+            if (bodyDto.fetchNumberAggregation(REPORT_COUNT_V1).longValue() > bodyDto.fetchNumberAggregation(LIKE_COUNT_V1).longValue()) {
                 return true;
             }
         }
@@ -140,7 +132,7 @@ public class UserActionEventProcessor {
         return false;
     }
 
-    private void updateAggregation(String id, EntityType entityType, AggregationType aggregationType, int moreOrLess) {
+    private void updateAggregation(String id, EntityType entityType, AggregationType aggregationType, Object change) {
         Aggregation aggregation = aggregationRepository.findByTargetIdAndTargetType(id, entityType).orElse(null);
 
         if (aggregation == null) {
@@ -148,7 +140,13 @@ public class UserActionEventProcessor {
         }
 
         AggregationBodyDto bodyDto = aggregation.convertBodyToDto();
-        bodyDto.updateValue(aggregationType, moreOrLess);
+        if (change instanceof Number) {
+            bodyDto.updateNumberValue(aggregationType, ((Number) change).intValue());
+        }
+        if (change instanceof String) {
+            bodyDto.updateStringValue(aggregationType, (String) change);
+        }
+
         aggregation.setBody(JSON_SERIALIZER.writeAsJson(bodyDto));
         aggregationRepository.save(aggregation);
     }
