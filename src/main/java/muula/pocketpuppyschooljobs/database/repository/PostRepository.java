@@ -14,7 +14,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(value = "SELECT * FROM post "
         + "WHERE ID > :maxId "
         + "ORDER BY ID ASC "
-        + "LIMIT 100 ;",
+        + "LIMIT 1 ;",
         nativeQuery = true)
     List<Post> findNextPost(@Param("maxId") Long maxId);
 
