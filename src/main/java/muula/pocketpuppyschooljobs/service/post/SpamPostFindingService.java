@@ -50,7 +50,7 @@ public class SpamPostFindingService {
     }
 
     private void process(Post postToUpdate) throws IOException {
-        if (spamPostBlurs.contains(postToUpdate.getBlurHash())) {
+        if (!postToUpdate.getIsHidden() && spamPostBlurs.contains(postToUpdate.getBlurHash())) {
             postToUpdate.setIsHidden(Boolean.TRUE);
             log.error("Found a possible Spam post: " + postToUpdate.getId());
             postRepository.save(postToUpdate);
