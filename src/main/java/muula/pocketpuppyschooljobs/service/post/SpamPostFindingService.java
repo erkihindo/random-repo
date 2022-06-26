@@ -35,7 +35,7 @@ public class SpamPostFindingService {
         try {
             process(postToUpdate);
             updatePointer(postToUpdateList);
-            log.info("Updated post: {}", postToUpdate.getId());
+            log.info("Checked post for spam: {}", postToUpdate.getId());
         } catch (IOException e) {
             log.info("Failed to check post, id: {}", postToUpdate.getId(), e);
         }
