@@ -33,6 +33,7 @@ dependencies {
 
 	// job
 	implementation "io.trbl:blurhash:1.0.0"
+	compile('joda-time:joda-time:2.7')
 
 	//rollbar
 	compile('com.rollbar:rollbar-logback:1.+')

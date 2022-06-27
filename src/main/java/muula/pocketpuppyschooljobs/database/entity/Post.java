@@ -35,6 +35,9 @@ public class Post {
     @Column(name = "link")
     String link;
 
+    @Column(name = "hash_id")
+    String hashId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
     PostType type;
