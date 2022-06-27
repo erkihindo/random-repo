@@ -49,7 +49,7 @@ public class HashCodeGeneratorService {
     }
 
     private void process(Post postToUpdate) throws IOException {
-        String hash = String.valueOf(Instant.now().get(DateTimeFieldType.yearOfEra())) + postToUpdate.getUserId() + postToUpdate.getLink().hashCode();
+        String hash = String.valueOf(Instant.now().get(DateTimeFieldType.yearOfEra())) + postToUpdate.getUserId() + Math.abs(postToUpdate.getLink().hashCode());
 
         postToUpdate.setHashId(hash);
         log.info("Updating hash for post {}, {}", postToUpdate.getId(), hash);
