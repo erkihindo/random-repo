@@ -34,7 +34,7 @@ public class HashCodeGeneratorService {
         try {
             process(postToUpdate);
             updatePointer(postToUpdateList);
-            log.info("Checked post for spam: {}", postToUpdate.getId());
+            log.info("Generated hash for: {}", postToUpdate.getId());
         } catch (IOException e) {
             log.info("Failed to check post, id: {}", postToUpdate.getId(), e);
         }
