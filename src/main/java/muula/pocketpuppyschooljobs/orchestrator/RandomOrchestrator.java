@@ -2,7 +2,6 @@ package muula.pocketpuppyschooljobs.orchestrator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import muula.pocketpuppyschooljobs.service.action.UserActionEventProcessor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -11,12 +10,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Profile({"!integration"})
-public class EventProcessingOrchestrator {
+public class RandomOrchestrator {
 
-    private final UserActionEventProcessor userActionEventProcessor;
 
-    @Scheduled(initialDelay = 30000, fixedDelay = 3000)
+    @Scheduled(fixedDelay = 1000)
     public void run() {
-        userActionEventProcessor.processNextEvent();
+        log.info("I am running");
     }
 }

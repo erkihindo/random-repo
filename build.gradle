@@ -13,7 +13,7 @@ publishing {
 	publications {
 		maven(MavenPublication) {
 			groupId 'muula'
-			artifactId 'pocket-puppy-school-jobs'
+			artifactId 'random-repo'
 			version '0.0.1-SNAPSHOT'
 
 			from components.java
