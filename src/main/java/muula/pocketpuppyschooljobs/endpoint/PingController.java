@@ -15,7 +15,7 @@ public class PingController {
     @ResponseBody
     @PostMapping(value = "/ping")
     public ResponseEntity<Boolean> ping() {
-        log.info("Endpoint called")
+        log.info("Endpoint called");
         return ResponseEntity.ok(Boolean.TRUE);
     }
 }

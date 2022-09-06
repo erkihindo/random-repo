@@ -1,6 +1,13 @@
 spring:
   application:
     name: puppy_school_example
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: ${ENV_DATASOURCE_URL}
+    username: ${ENV_DATASOURCE_USERNAME}
+    password: ${ENV_DATASOURCE_PASSWORD}
+    hikari:
+      maximum-pool-size: ${ENV_DATASOURCE_POOL_SIZE}
 
 rollbar:
   accessToken: ${ROLLBAR_TOKEN_1}
